@@ -3,7 +3,11 @@
 
 #include "CDVD/CDVDdiscReader.h"
 
+// Android has no udev: there is nothing to enumerate on a device with no
+// optical drive, so GetOpticalDriveList() below returns an empty list there.
+#if !defined(__ANDROID__)
 #include <libudev.h>
+#endif
 #include <linux/cdrom.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -11,6 +15,9 @@
 
 std::vector<std::string> GetOpticalDriveList()
 {
+#if defined(__ANDROID__)
+	return {};
+#else
 	udev* udev_context = udev_new();
 	if (!udev_context)
 		return {};
@@ -39,6 +46,7 @@ std::vector<std::string> GetOpticalDriveList()
 	udev_unref(udev_context);
 
 	return drives;
+#endif
 }
 
 void GetValidDrive(std::string& drive)

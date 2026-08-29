@@ -1341,6 +1341,15 @@ if(LINUX)
 	target_link_libraries(PCSX2_FLAGS INTERFACE
 		PkgConfig::LIBUDEV
 	)
+elseif(ANDROID)
+	# The same CDVD backend: the ioctl reader is plain <linux/cdrom.h> and
+	# builds fine against bionic. Only the drive *enumeration* differs, since
+	# that one goes through libudev, which Android does not have - see the
+	# guard in DriveUtility.cpp. No udev to link, therefore.
+	target_sources(PCSX2 PRIVATE
+		${pcsx2LinuxSources}
+		${pcsx2LinuxHeaders}
+		)
 endif()
 
 if(WIN32)
