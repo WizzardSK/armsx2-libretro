@@ -1,0 +1,70 @@
+name: libretro preflight
+
+on:
+  push:
+    branches: [ libretro-buildbot-fixes ]
+  workflow_dispatch:
+
+jobs:
+  # The real thing: build the dependency set with the MinGW cross toolchain and
+  # take the core as far as it goes, so the wall is measured rather than guessed
+  # at. The buildbot's windows-cmake-mingw template is the same toolchain, one
+  # image further along (MXE).
+  windows-mingw:
+    # 24.04, not 22.04: its mingw-w64 is GCC 13, and std::bit_cast (which
+    # common/MemoryInterface.cpp and the emitter use) needs GCC 11. The
+    # buildbot's MXE image is gcc11, so it clears that bar too.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - name: toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq g++-mingw-w64-x86-64-posix gcc-mingw-w64-x86-64-posix \
+            ninja-build cmake python3 git
+      - name: restore deps
+        id: cache-deps
+        uses: actions/cache/restore@v4
+        with:
+          path: .deps
+          key: mingw-deps-${{ hashFiles('.github/workflows/scripts/windows/build-dependencies-mingw.sh', '.github/workflows/scripts/windows/mingw-toolchain.cmake') }}
+      - name: deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./.github/workflows/scripts/windows/build-dependencies-mingw.sh "$GITHUB_WORKSPACE/.deps"
+      - name: save deps
+        if: always() && steps.cache-deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .deps
+          key: mingw-deps-${{ hashFiles('.github/workflows/scripts/windows/build-dependencies-mingw.sh', '.github/workflows/scripts/windows/mingw-toolchain.cmake') }}
+      - name: configure
+        run: |
+          set -e
+          cmake -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$GITHUB_WORKSPACE/.github/workflows/scripts/windows/mingw-toolchain.cmake" \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.deps" \
+            -DCMAKE_FIND_ROOT_PATH="$GITHUB_WORKSPACE/.deps;/usr/x86_64-w64-mingw32" \
+            -DENABLE_LIBRETRO=ON -DENABLE_QT_UI=OFF -DENABLE_SDL_FRONTEND=OFF \
+            -DENABLE_GSRUNNER=OFF -DENABLE_TESTS=OFF -DENABLE_RECOMPILER_TEST_HOOKS=OFF \
+            -DENABLE_SETCAP=OFF -DUSE_BACKTRACE=OFF -DUSE_D3D=OFF \
+            -DDISABLE_ADVANCE_SIMD=TRUE -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON \
+            . -Bbuild/windows-x64
+      - name: build (keep going, so one wall does not hide the next)
+        run: |
+          set +e
+          cmake --build build/windows-x64 --target pcsx2-libretro -- -k > /tmp/win.log 2>&1
+          echo "--- distinct errors"
+          grep -E "error:|fatal error:" /tmp/win.log | sed 's/^ *//' | sort -u | head -60
+          echo "--- files that failed"
+          grep -E "^FAILED:|No rule to make target|Error [0-9]" /tmp/win.log | sort -u | head -40
+          echo "--- log tail (in case the build never started)"
+          tail -30 /tmp/win.log
+          dll=build/windows-x64/pcsx2-libretro/armsx2_libretro.dll
+          if [ ! -f "$dll" ]; then
+            echo "::error::No armsx2_libretro.dll was produced by the build."
+            exit 1
+          fi
+          ls -la "$dll"
+          ls -la build/windows-x64/bin/ 2>/dev/null || true
