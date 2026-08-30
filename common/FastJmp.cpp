@@ -4,8 +4,74 @@
 #include "FastJmp.h"
 
 // Windows uses a hand-written .asm (FastJmp.asm on x86, FastJmp.aarch64.asm on
-// arm64), because MSVC supports no inline asm on either architecture.
-#if !defined(_WIN32)
+// arm64), because MSVC supports no inline asm on either architecture. MinGW can
+// assemble neither file, but it does support inline asm, so an x86_64 MinGW
+// build gets its own Win64 version here.
+#if defined(_WIN32) && defined(__GNUC__) && defined(ARCH_X86)
+
+// The Win64 ABI, so this is not the System V version further down with
+// different registers: the buffer arrives in rcx and the return code in edx,
+// and rsi, rdi and xmm6-15 are callee-saved and have to be in the buffer.
+// Offsets match FastJmp.asm exactly.
+asm(
+	"\t.global fastjmp_set\n"
+	"\t.global fastjmp_jmp\n"
+	"\t.text\n"
+	"\tfastjmp_set:" R"(
+	movq 0(%rsp), %rax
+	movq %rsp, %rdx			# fixup stack pointer, so it doesn't include the call to fastjmp_set
+	addq $8, %rdx
+	movq %rax, 0(%rcx)	# actually rip
+	movq %rbx, 8(%rcx)
+	movq %rdx, 16(%rcx)	# actually rsp
+	movq %rbp, 24(%rcx)
+	movq %rsi, 32(%rcx)
+	movq %rdi, 40(%rcx)
+	movq %r12, 48(%rcx)
+	movq %r13, 56(%rcx)
+	movq %r14, 64(%rcx)
+	movq %r15, 72(%rcx)
+	movaps %xmm6, 80(%rcx)
+	movaps %xmm7, 96(%rcx)
+	movaps %xmm8, 112(%rcx)
+	addq $112, %rcx
+	movaps %xmm9, 16(%rcx)
+	movaps %xmm10, 32(%rcx)
+	movaps %xmm11, 48(%rcx)
+	movaps %xmm12, 64(%rcx)
+	movaps %xmm13, 80(%rcx)
+	movaps %xmm14, 96(%rcx)
+	movaps %xmm15, 112(%rcx)
+	xorl %eax, %eax
+	ret
+)"
+	"\tfastjmp_jmp:" R"(
+	movl %edx, %eax
+	movq 0(%rcx), %rdx	# actually rip
+	movq 8(%rcx), %rbx
+	movq 16(%rcx), %rsp
+	movq 24(%rcx), %rbp
+	movq 32(%rcx), %rsi
+	movq 40(%rcx), %rdi
+	movq 48(%rcx), %r12
+	movq 56(%rcx), %r13
+	movq 64(%rcx), %r14
+	movq 72(%rcx), %r15
+	movaps 80(%rcx), %xmm6
+	movaps 96(%rcx), %xmm7
+	movaps 112(%rcx), %xmm8
+	addq $112, %rcx
+	movaps 16(%rcx), %xmm9
+	movaps 32(%rcx), %xmm10
+	movaps 48(%rcx), %xmm11
+	movaps 64(%rcx), %xmm12
+	movaps 80(%rcx), %xmm13
+	movaps 96(%rcx), %xmm14
+	movaps 112(%rcx), %xmm15
+	jmp *%rdx
+)");
+
+#elif !defined(_WIN32)
 
 #if defined(__APPLE__)
 #define PREFIX "_"

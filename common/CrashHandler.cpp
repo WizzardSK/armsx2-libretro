@@ -14,7 +14,7 @@
 #include "RedtapeWindows.h"
 
 #include "StackWalker.h"
-#include <DbgHelp.h>
+#include <dbghelp.h>
 
 class CrashHandlerStackWalker : public StackWalker
 {
@@ -70,6 +70,7 @@ static bool WriteMinidump(HMODULE hDbgHelp, HANDLE hFile, HANDLE hProcess, DWORD
 		return minidump_write_dump(hProcess, process_id, hFile, type, &mei, nullptr, nullptr);
 	}
 
+#if defined(_MSC_VER)
 	__try
 	{
 		RaiseException(EXCEPTION_INVALID_HANDLE, 0, 0, nullptr);
@@ -79,6 +80,13 @@ static bool WriteMinidump(HMODULE hDbgHelp, HANDLE hFile, HANDLE hProcess, DWORD
 		EXCEPTION_EXECUTE_HANDLER)
 	{
 	}
+#else
+	// Structured exception handling is an MSVC extension: GCC has no __try, so
+	// a dump written on demand (rather than from a real exception) is not
+	// available in a MinGW build. Crash-time dumps, which come in through the
+	// vectored handler with real exception information, still work.
+	WriteMinidump(hDbgHelp, hFile, GetCurrentProcess(), GetCurrentProcessId(), GetCurrentThreadId(), nullptr, type);
+#endif
 
 	return true;
 }

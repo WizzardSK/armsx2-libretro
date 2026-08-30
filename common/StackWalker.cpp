@@ -87,7 +87,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
+#if defined(__MINGW32__)
+// _mingw.h defines __forceinline, and push_macro can only restore what is
+// defined at the time it runs - in a translation unit that reaches this header
+// before anything else, that is nothing at all, and the pop below would leave
+// the name undefined for every later system header (winsock2.h among them).
+#include <_mingw.h>
+#pragma push_macro("__forceinline")
+#undef __forceinline
+// _mingw.h will not define it again for us on the way back in, so spell out
+// what it uses.
+#define __forceinline extern __inline__ __attribute__((__always_inline__, __gnu_inline__))
+#endif
 #include <windows.h>
+#if defined(__MINGW32__)
+#pragma pop_macro("__forceinline")
+#endif
 #include <dbghelp.h>
 #pragma comment(lib, "version.lib") // for "VerQueryValue"
 

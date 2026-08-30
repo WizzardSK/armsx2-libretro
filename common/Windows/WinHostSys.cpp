@@ -9,10 +9,13 @@
 #include "common/Error.h"
 #include "common/RedtapeWindows.h"
 #include "common/StringUtil.h"
+#include "common/Windows/WinMemoryAPI.h"
 
 #include "fmt/format.h"
 
 #include <mutex>
+
+
 
 static DWORD ConvertToWinApi(const PageProtectionMode& mode)
 {

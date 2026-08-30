@@ -78,7 +78,11 @@ static constexpr unsigned int __pagealignsize = 0x1000;
 // --------------------------------------------------------------------------------------
 
 // SysV ABI passes vector parameters through registers unconditionally.
-#ifndef _WIN32
+// On Windows the keyword exists for MSVC and clang, but not for GCC, and a
+// MinGW build would otherwise choke on every RETURNS_R128 declaration. The
+// convention only has to be consistent within one build: the JIT reaches the
+// 128-bit vtlb handlers through the RWFT table, which passes data by pointer.
+#if !defined(_WIN32) || (defined(__GNUC__) && !defined(__clang__))
 #define __vectorcall
 #endif
 
@@ -89,8 +93,21 @@ static constexpr unsigned int __pagealignsize = 0x1000;
 // __forceinline_odr is for member functions that are defined in headers. MSVC can't specify
 // inline and __forceinline at the same time, but it required to not get ODR errors in GCC.
 
+// mingw spells __forceinline with the inline keyword, and its own headers -
+// windows.h, string.h's secure API, intrin.h - declare functions with it and
+// expect that spelling; a definition without inline makes each of them emit a
+// symbol in every translation unit that includes them. So keep the keyword
+// here, and give the few functions that are defined with __fi in one .cpp and
+// declared extern for the rest of the tree their out-of-line copy by including
+// common/MinGWOutOfLine.h at the top of that .cpp.
+#if defined(__MINGW32__)
+#undef __forceinline
+#define __forceinline inline __attribute__((always_inline, unused))
+#define __forceinline_odr __forceinline
+#else
 #define __forceinline __attribute__((always_inline, unused))
 #define __forceinline_odr __forceinline inline
+#endif
 #define __noinline __attribute__((noinline))
 #define __noreturn __attribute__((noreturn))
 
@@ -117,6 +134,7 @@ static constexpr unsigned int __pagealignsize = 0x1000;
 // environment.
 //
 #define __fi __forceinline
+
 #ifdef PCSX2_DEVBUILD
 #define __ri
 #else

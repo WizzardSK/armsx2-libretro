@@ -1316,10 +1316,15 @@ typedef std::vector<uint32_t> U32Vec;
 	#define XBYAK_WINSDK_HAS_RELATIONSHIP_GROUP_AFFINITY 0
 #endif
 
-#if (defined(NTDDI_VERSION) && NTDDI_VERSION >= 0x0A000000) || (defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0A00)
-	#define XBYAK_WINSDK_HAS_EFFICIENCY_CLASS 1
-#else
-	#define XBYAK_WINSDK_HAS_EFFICIENCY_CLASS 0
+#if !defined(XBYAK_WINSDK_HAS_EFFICIENCY_CLASS)
+	// Overridable: the API level says what Windows supports, not what the
+	// toolchain's headers declare. mingw-w64 sets NTDDI to whatever it is
+	// asked for while its PROCESSOR_RELATIONSHIP has no EfficiencyClass.
+	#if (defined(NTDDI_VERSION) && NTDDI_VERSION >= 0x0A000000) || (defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0A00)
+		#define XBYAK_WINSDK_HAS_EFFICIENCY_CLASS 1
+	#else
+		#define XBYAK_WINSDK_HAS_EFFICIENCY_CLASS 0
+	#endif
 #endif
 
 // GroupMasks[] / GroupCount on CACHE_RELATIONSHIP added in Win10 20H1 (SDK 10.0.19041, NTDDI_WIN10_VB)

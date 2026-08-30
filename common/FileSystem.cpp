@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0+
 
 #include "FileSystem.h"
+
+#if defined(_WIN32) && !defined(PATHCCH_ENSURE_IS_EXTENDED_LENGTH_PATH)
+// mingw-w64's pathcch.h declares the function but not the flags.
+#define PATHCCH_ENSURE_IS_EXTENDED_LENGTH_PATH 0x00000010
+#endif
 #include "Error.h"
 #include "Path.h"
 #include "Assertions.h"
