@@ -9,7 +9,7 @@
 #include "GS/GSCapture.h"
 #include "GS/GSVector.h"
 #include "GS/Renderers/Common/GSDevice.h"
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_D3D)
 #include "GS/Renderers/DX12/GSDevice12.h"
 #endif
 #include "GS/Renderers/HW/GSTextureReplacements.h"
@@ -52,6 +52,7 @@
 #include <span>
 #include <string>
 #include <tuple>
+#include "common/MinGWOutOfLine.h"
 
 InputRecordingUI::InputRecordingData g_InputRecordingData;
 
@@ -745,7 +746,7 @@ __ri void ImGuiManager::DrawPerformanceOverlay(float& position_y, float scale, f
 
 			if (GSConfig.OsdShowGPUDebug)
 			{
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_D3D)
 				if (g_gs_device->GetRenderAPI() == RenderAPI::D3D12)
 				{
 					GSDevice12* dev12 = static_cast<GSDevice12*>(g_gs_device.get());
@@ -837,7 +838,7 @@ __ri void ImGuiManager::DrawPerformanceOverlay(float& position_y, float scale, f
 
 			if (GSConfig.OsdShowGPUDebug)
 			{
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_D3D)
 				if (g_gs_device->GetRenderAPI() == RenderAPI::D3D12)
 					DRAW_LINE(osd_font, font_size, s_gpu_debug_info_line.c_str(), OsdTextColor());
 #endif
@@ -2196,7 +2197,7 @@ std::string SaveStateSelectorUI::GetSaveStateTimestampSummary(const std::time_t&
 {
 
 	std::tm tm_modification_local = {};
-#ifdef _MSC_VER
+#ifdef _WIN32
 	localtime_s(&tm_modification_local, &modification_time);
 #else
 	localtime_r(&modification_time, &tm_modification_local);

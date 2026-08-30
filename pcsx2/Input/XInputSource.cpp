@@ -493,10 +493,11 @@ void XInputSource::HandleControllerConnection(u32 index)
 void XInputSource::HandleControllerDisconnection(u32 index)
 {
 	INFO_LOG("XInput controller {} disconnected.", index);
-	InputManager::OnInputDeviceDisconnected({{
-												.source_type = InputSourceType::XInput,
-												.source_index = index,
-											}},
+	// Spelled the way SDLInputSource does it: naming the union member rather
+	// than relying on brace elision into its anonymous struct, which GCC does
+	// not accept here.
+	InputManager::OnInputDeviceDisconnected(
+		{InputBindingKey{.source_type = InputSourceType::XInput, .source_index = index}},
 		fmt::format("XInput-{}", index));
 	m_controllers[index] = {};
 }

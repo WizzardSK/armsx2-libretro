@@ -8,11 +8,11 @@
 #include "fmt/format.h"
 
 #include <stdio.h>
-#include <WinSock2.h>
-#include <WS2tcpip.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <iphlpapi.h>
 
-#include <Netcfgx.h>
+#include <netcfgx.h>
 #include <devguid.h>
 
 #include <tchar.h>
@@ -20,8 +20,6 @@
 #include "DEV9/DEV9.h"
 #include <string>
 
-#include <wil/com.h>
-#include <wil/resource.h>
 
 #include "DEV9/PacketReader/MAC_Address.h"
 #include "DEV9/AdapterUtils.h"

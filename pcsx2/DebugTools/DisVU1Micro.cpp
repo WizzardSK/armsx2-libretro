@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2002-2026 PCSX2 Dev Team
 // SPDX-License-Identifier: GPL-3.0+
 
+// Before the _X/_Y/_Z/_W macros below: mingw-w64's math.h declares
+// double ceil(double _X), and whichever of the two is parsed second loses.
+#include <cmath>
+
 #include "Debug.h"
 #include "VUmicro.h"
 

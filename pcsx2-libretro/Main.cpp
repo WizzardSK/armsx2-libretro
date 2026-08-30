@@ -46,6 +46,12 @@
 #if defined(__APPLE__)
 #define VK_USE_PLATFORM_METAL_EXT
 #endif
+#if defined(_WIN32)
+// Same story as the Metal one above: without this, vulkan.h is included from
+// here without its Win32 section, and VKEntryPoints.inl then has no
+// PFN_vkCreateWin32SurfaceKHR to declare the entry points with.
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
 #include "libretro_vulkan.h"
 
 #include "fmt/format.h"

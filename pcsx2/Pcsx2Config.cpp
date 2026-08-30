@@ -22,8 +22,8 @@
 #include "fmt/format.h"
 #ifdef _WIN32
 #include "common/RedtapeWindows.h"
-#include <KnownFolders.h>
-#include <ShlObj.h>
+#include <knownfolders.h>
+#include <shlobj.h>
 #endif
 
 // This macro is actually useful for about any and every possible application of C++ equality operators.

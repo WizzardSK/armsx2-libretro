@@ -8,6 +8,22 @@
 #include "videodev.h"
 #include "cam-jpeg.h"
 #include "cam-windows.h"
+
+// DIBSIZE and the two macros behind it live in the Windows SDK's uuids/dvdmedia
+// headers, which mingw-w64 does not carry. They are pure arithmetic on a
+// BITMAPINFOHEADER, so define them when the toolchain has not.
+#ifndef WIDTHBYTES
+#define WIDTHBYTES(bits) ((((bits) + 31) / 32) * 4)
+#endif
+#ifndef DIBWIDTHBYTES
+#define DIBWIDTHBYTES(bi) (DWORD) WIDTHBYTES((DWORD)(bi).biWidth * (DWORD)(bi).biBitCount)
+#endif
+#ifndef _DIBSIZE
+#define _DIBSIZE(bi) (DIBWIDTHBYTES(bi) * (DWORD)(bi).biHeight)
+#endif
+#ifndef DIBSIZE
+#define DIBSIZE(bi) ((bi).biHeight < 0 ? (-1) * (_DIBSIZE(bi)) : _DIBSIZE(bi))
+#endif
 #include "usb-eyetoy-webcam.h"
 #include "jo_mpeg.h"
 #include "USB/USB.h"

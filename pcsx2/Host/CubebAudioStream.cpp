@@ -19,7 +19,7 @@
 #include "common/RedtapeWindows.h"
 #include <objbase.h>
 
-#include "wil/resource.h"
+#include "common/RedtapeWilCom.h"
 #endif
 
 namespace
@@ -90,6 +90,12 @@ CubebAudioStream::~CubebAudioStream()
 
 void CubebAudioStream::LogCallback(const char* fmt, ...)
 {
+	// strsafe.h (pulled in with the Windows headers) redefines vsprintf to a
+	// placeholder name meant to push callers at StringCbVPrintfA; that rewrites
+	// the call to our own SmallString method too.
+#ifdef vsprintf
+#undef vsprintf
+#endif
 	SmallString str;
 	std::va_list ap;
 	va_start(ap, fmt);

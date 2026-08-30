@@ -120,8 +120,12 @@ void InitNet()
 
 	rx_thread = std::thread(NetRxThread);
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	SetThreadPriority(rx_thread.native_handle(), THREAD_PRIORITY_HIGHEST);
+#elif defined(_WIN32)
+	// MinGW's std::thread is winpthreads: native_handle() is a pthread_t and
+	// not a thread HANDLE, so there is nothing to hand SetThreadPriority. The
+	// receive thread runs at normal priority there.
 #elif defined(__POSIX__)
 	int policy = 0;
 	sched_param param;

@@ -20,11 +20,13 @@
 
 #ifdef _WIN32
 #include "common/RedtapeWindows.h"
+#include <versionhelpers.h>
+#endif
+#if defined(_WIN32) && defined(ENABLE_D3D)
 #include <d3dcommon.h>
 #include <dxgi.h>
-#include <VersionHelpers.h>
 #include "GS/Renderers/DX11/D3D.h"
-#include <wil/com.h>
+#include "common/RedtapeWilCom.h"
 #endif
 
 namespace {
@@ -348,7 +350,7 @@ GSRendererType GSUtil::GetPreferredRenderer()
 #elif defined(_WIN32) && defined(ARCH_ARM64)
 		// Default to DX12 on Windows-on-ARM.
 		preferred_renderer = GSRendererType::DX12;
-#elif defined(_WIN32)
+#elif defined(_WIN32) && defined(ENABLE_D3D)
 		// Use D3D device info to select renderer.
 		preferred_renderer = D3D::GetPreferredRenderer();
 #elif defined(__ANDROID__)

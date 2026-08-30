@@ -12,7 +12,6 @@
 #include <mutex>
 #include <vector>
 
-#include <wil/resource.h>
 
 class DInputSource final : public InputSource
 {

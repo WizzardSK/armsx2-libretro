@@ -76,7 +76,7 @@ static auto last = std::chrono::time_point<std::chrono::system_clock>();
 MemoryCardFileEntryDateTime MemoryCardFileEntryDateTime::FromTime(time_t time)
 {
 	struct tm converted = {};
-#ifdef _MSC_VER
+#ifdef _WIN32
 	gmtime_s(&converted, &time);
 #else
 	gmtime_r(&time, &converted);
@@ -103,7 +103,8 @@ time_t MemoryCardFileEntryDateTime::ToTime() const
 	converted.tm_mon = std::max(static_cast<int>(month) - 1, 0);
 	converted.tm_year = std::max(static_cast<int>(year) - 1900, 0);
 
-#ifdef _MSC_VER
+#ifdef _WIN32
+	// mingw's CRT has _mkgmtime as well; timegm is the POSIX one.
 	return _mkgmtime(&converted);
 #else
 	return timegm(&converted);

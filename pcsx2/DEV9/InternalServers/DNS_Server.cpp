@@ -271,7 +271,7 @@ namespace InternalServers
 		std::vector<wchar_t> converted_string(size);
 		MultiByteToWideChar(CP_UTF8, 0, url.c_str(), -1, converted_string.data(), converted_string.size());
 
-		ADDRINFOEX hints{0};
+		ADDRINFOEXW hints{0};
 		hints.ai_family = AF_INET;
 
 		GetAddrInfoExCallbackData* data = new GetAddrInfoExCallbackData();
@@ -279,7 +279,10 @@ namespace InternalServers
 		data->session = this;
 		data->url = url;
 
-		const int ret = GetAddrInfoEx(converted_string.data(), nullptr, NS_ALL, 0, &hints, (ADDRINFOEX**)&data->result, nullptr, &data->overlapped, &DNS_Server::GetAddrInfoExCallback, &data->cancelHandle);
+		// The cast is for GCC: the completion routine is typed with
+		// LPWSAOVERLAPPED, and our callback takes the layout-compatible
+		// OVERLAPPED* that MSVC accepts directly.
+		const int ret = GetAddrInfoExW(converted_string.data(), nullptr, NS_ALL, 0, &hints, (ADDRINFOEXW**)&data->result, nullptr, &data->overlapped, reinterpret_cast<LPLOOKUPSERVICE_COMPLETION_ROUTINE>(&DNS_Server::GetAddrInfoExCallback), &data->cancelHandle);
 		if (ret == WSA_IO_PENDING)
 			return;
 		else
@@ -295,7 +298,7 @@ namespace InternalServers
 		{
 			case NO_ERROR:
 			{
-				ADDRINFOEX* addrInfo = (ADDRINFOEX*)data->result;
+				ADDRINFOEXW* addrInfo = (ADDRINFOEXW*)data->result;
 				while (addrInfo != nullptr && addrInfo->ai_family != AF_INET)
 					addrInfo = addrInfo->ai_next;
 
@@ -330,7 +333,7 @@ namespace InternalServers
 
 		//cleanup
 		if (data->result != nullptr)
-			FreeAddrInfoEx((ADDRINFOEX*)data->result);
+			FreeAddrInfoExW((ADDRINFOEXW*)data->result);
 		delete data;
 	}
 #elif defined(__POSIX__)

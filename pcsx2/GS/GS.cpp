@@ -37,7 +37,7 @@
 #include "GS/Renderers/Vulkan/GSDeviceVK.h"
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_D3D)
 
 #include "GS/Renderers/DX11/GSDevice11.h"
 #include "GS/Renderers/DX12/GSDevice12.h"
@@ -51,6 +51,11 @@
 #include "common/Path.h"
 #include "common/SmallString.h"
 #include "common/StringUtil.h"
+#ifdef _WIN32
+// GSAllocateFastmemArea calls VirtualAlloc2/MapViewOfFile3/UnmapViewOfFile2,
+// which mingw cannot link against - the header routes them via kernelbase.
+#include "common/Windows/WinMemoryAPI.h"
+#endif
 
 #include "IconsFontAwesome.h"
 
@@ -98,7 +103,7 @@ static RenderAPI GetAPIForRenderer(GSRendererType renderer)
 		case GSRendererType::VK:
 			return RenderAPI::Vulkan;
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_D3D)
 		case GSRendererType::DX11:
 			return RenderAPI::D3D11;
 
@@ -127,7 +132,7 @@ static bool OpenGSDevice(GSRendererType renderer, bool clear_state_on_fail, bool
 			g_gs_device = std::make_unique<GSDeviceNone>();
 			break;
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_D3D)
 		case RenderAPI::D3D11:
 			g_gs_device = std::make_unique<GSDevice11>();
 			break;
@@ -824,7 +829,7 @@ std::vector<GSAdapterInfo> GSGetAdapterInfo(GSRendererType renderer)
 	std::vector<GSAdapterInfo> ret;
 	switch (renderer)
 	{
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_D3D)
 		case GSRendererType::DX11:
 		case GSRendererType::DX12:
 		{
