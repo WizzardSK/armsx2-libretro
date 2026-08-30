@@ -660,7 +660,12 @@ if(USE_OPENGL)
 	if(WIN32)
 		list(APPEND pcsx2GSSources GS/Renderers/OpenGL/GLContextWGL.cpp)
 		list(APPEND pcsx2GSHeaders GS/Renderers/OpenGL/GLContextWGL.h)
-		target_link_libraries(PCSX2_FLAGS INTERFACE opengl32.lib WinPixEventRuntime::WinPixEventRuntime)
+		# WinPixEventRuntime comes with the D3D dependencies; without them the
+		# target does not exist, and PIX markers are a D3D debugging aid anyway.
+		target_link_libraries(PCSX2_FLAGS INTERFACE opengl32)
+		if(USE_D3D)
+			target_link_libraries(PCSX2_FLAGS INTERFACE WinPixEventRuntime::WinPixEventRuntime)
+		endif()
 	else()
 		if(X11_API OR WAYLAND_API)
 			list(APPEND pcsx2GSSources GS/Renderers/OpenGL/GLContextEGL.cpp)
@@ -803,6 +808,7 @@ if(WIN32)
 		USB/usb-eyetoy/cam-windows.h
 	)
 
+	if(USE_D3D)
 	list(APPEND pcsx2GSSources
 		GS/Renderers/DX11/D3D.cpp
 		GS/Renderers/DX11/D3D11ShaderCache.cpp
@@ -827,6 +833,7 @@ if(WIN32)
 		GS/Renderers/DX12/GSDevice12.h
 		GS/Renderers/DX12/GSTexture12.h
 	)
+	endif()
 elseif(LINUX)
 	list(APPEND pcsx2USBSources
 		USB/usb-eyetoy/cam-linux.cpp
@@ -875,7 +882,7 @@ if(DISABLE_ADVANCE_SIMD AND ARCH_X86)
 	if(USE_GCC)
 		target_link_options(PCSX2_FLAGS INTERFACE -Wno-odr)
 	endif()
-	if(WIN32)
+	if(MSVC)
 		set(compile_options_avx2 /arch:AVX2)
 		set(compile_options_avx  /arch:AVX)
 	elseif(USE_GCC)
@@ -1404,28 +1411,46 @@ target_link_libraries(PCSX2_FLAGS INTERFACE
 )
 
 if(WIN32)
+	# Written without the .lib suffix: MSVC appends it, and a cross toolchain
+	# passes the name to -l, where the suffix would not resolve.
 	target_link_libraries(PCSX2_FLAGS INTERFACE
 		WIL::WIL
-		D3D12MemAlloc
-		setupapi.lib
-		ws2_32.lib
-		shlwapi.lib
-		iphlpapi.lib
-		dsound.lib
-		dxguid.lib
-		dinput8.lib
-		hid.lib
-		PowrProf.lib
-		d3dcompiler.lib
-		d3d11.lib
-		d3d12.lib
-		dxgi.lib
-		strmiids.lib
-		opengl32.lib
-		comsuppw.lib
-		dwmapi.lib
-		OneCore.lib
+		setupapi
+		ws2_32
+		shlwapi
+		iphlpapi
+		dsound
+		dinput8
+		hid
+		powrprof
+		strmiids
+		opengl32
+		dwmapi
+		avrt
+		winhttp
 	)
+	if(MSVC)
+		# The OneCore umbrella import library is a Windows SDK thing; mingw-w64
+		# has no equivalent, and what this pulls from it (the newer memory API)
+		# is exported by kernelbase there.
+		target_link_libraries(PCSX2_FLAGS INTERFACE OneCore)
+	endif()
+	if(MSVC)
+		# COM support library; there is no MinGW equivalent and nothing outside
+		# the D3D paths needs it.
+		target_link_libraries(PCSX2_FLAGS INTERFACE comsuppw)
+	endif()
+	# VMManager::LogGPUCapabilities enumerates adapters through DXGI on every
+	# Windows build, D3D renderers or not.
+	target_link_libraries(PCSX2_FLAGS INTERFACE dxgi dxguid)
+	if(USE_D3D)
+		target_link_libraries(PCSX2_FLAGS INTERFACE
+			D3D12MemAlloc
+			d3dcompiler
+			d3d11
+			d3d12
+		)
+	endif()
 elseif(NOT ANDROID AND NOT IOS)
 	# Android and iOS have no system libpcap; DEV9 uses Android/AndroidPcapStubs.cpp
 	# instead, so they must NOT link PCAP::PCAP. iOS additionally skips

@@ -33,6 +33,14 @@ if(NOT APPLE)
 endif()
 option(USE_VULKAN "Enable Vulkan GS renderer" ON)
 
+if(WIN32)
+	# The Direct3D 11/12 renderers. Off is for builds that only ever get a
+	# device from somewhere else - the libretro core is handed the frontend's
+	# Vulkan device - and for cross toolchains: the D3D path needs the Windows
+	# SDK (WIL, the Agility SDK headers), which MinGW does not have.
+	option(USE_D3D "Enable Direct3D 11/12 GS renderers" ON)
+endif()
+
 #-------------------------------------------------------------------------------
 # Path and lib option
 #-------------------------------------------------------------------------------
@@ -313,6 +321,16 @@ endif()
 
 if(USE_OPENGL)
 	list(APPEND PCSX2_DEFS ENABLE_OPENGL)
+endif()
+
+if(USE_D3D)
+	list(APPEND PCSX2_DEFS ENABLE_D3D)
+endif()
+
+if(WIN32 AND NOT MSVC)
+	# mingw-w64's PROCESSOR_RELATIONSHIP has no EfficiencyClass member, which
+	# xbyak infers from the Windows API level alone.
+	add_compile_definitions(XBYAK_WINSDK_HAS_EFFICIENCY_CLASS=0)
 endif()
 
 if(USE_VULKAN)

@@ -57,6 +57,15 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 target_link_libraries(cubeb PRIVATE Threads::Threads)
 
+# mingw-w64 defaults its API level to Windows 2000, which has no SRW locks -
+# and cubeb_utils_win.h uses them. Vista rather than 10 on purpose:
+# cubeb_winmm.c defines WINVER as XP for itself, and a Windows 10 floor here
+# would leave mingw's headers declaring APIs whose types that older WINVER
+# never defined. The MSVC SDK needs none of this.
+if(WIN32 AND NOT MSVC)
+  target_compile_definitions(cubeb PRIVATE _WIN32_WINNT=0x0600)
+endif()
+
 if(LAZY_LOAD_LIBS)
   if(NOT APPLE AND NOT WIN32) # Skip checks on MacOS because it takes ages in XCode.
   check_include_files(pulse/pulseaudio.h USE_PULSE)

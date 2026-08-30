@@ -21,7 +21,7 @@ find_package(SDL3 3.2.6 REQUIRED)
 find_package(Freetype 2.10 REQUIRED) # 2.10 is the first with COLRv0 support, which we need for rendering emoji
 find_package(plutovg 1.1.0 REQUIRED)
 find_package(plutosvg 0.0.7 REQUIRED)
-if (WIN32)
+if (WIN32 AND USE_D3D)
 	find_package(DirectX-Headers 1.618.1 REQUIRED)
 endif()
 
@@ -31,8 +31,10 @@ endif()
 
 # Platform-specific dependencies.
 if (WIN32)
-	add_subdirectory(3rdparty/D3D12MemAlloc EXCLUDE_FROM_ALL)
-	add_subdirectory(3rdparty/winpixeventruntime EXCLUDE_FROM_ALL)
+	if(USE_D3D)
+		add_subdirectory(3rdparty/D3D12MemAlloc EXCLUDE_FROM_ALL)
+		add_subdirectory(3rdparty/winpixeventruntime EXCLUDE_FROM_ALL)
+	endif()
 	add_subdirectory(3rdparty/winwil EXCLUDE_FROM_ALL)
 	set(FFMPEG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/3rdparty/ffmpeg/include")
 	find_package(Vtune)

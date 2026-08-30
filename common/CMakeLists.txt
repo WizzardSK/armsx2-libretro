@@ -70,6 +70,7 @@ target_sources(common PRIVATE
 	ProgressCallback.h
 	ReadbackSpinManager.h
 	RedtapeWilCom.h
+	MinGWWil.h
 	RedtapeWindows.h
 	ScopedGuard.h
 	SettingsInterface.h
@@ -130,10 +131,12 @@ endif()
 if(WIN32)
 	# FastJmp is hand-written assembly (MSVC has no inline asm). x86 uses MASM
 	# (ml64); arm64 uses the Microsoft ARM assembler (armasm64 / ASM_MARMASM).
-	if(ARCH_ARM64)
+	# A MinGW build can assemble neither file and does have inline asm, so
+	# FastJmp.cpp carries a Win64 version of the same two functions there.
+	if(MSVC AND ARCH_ARM64)
 		enable_language(ASM_MARMASM)
 		target_sources(common PRIVATE FastJmp.aarch64.asm)
-	else()
+	elseif(MSVC)
 		enable_language(ASM_MASM)
 		target_sources(common PRIVATE FastJmp.asm)
 	endif()

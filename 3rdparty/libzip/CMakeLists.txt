@@ -67,6 +67,15 @@ set(HAVE_STRNCPY_S ${MSVC})
 set(HAVE_STRTOLL TRUE)
 set(HAVE_STRTOULL TRUE)
 
+if(MINGW)
+	# The switches above answer "MSVC or UNIX?", and MinGW is neither - but its
+	# CRT declares these, and compat.h's fallbacks are #defines that clobber the
+	# declarations rather than merely going unused.
+	set(HAVE__SNWPRINTF_S TRUE)
+	set(HAVE_FSEEKO TRUE)
+	set(HAVE_FTELLO TRUE)
+endif()
+
 if(UNIX)
   set(HAVE_FTS_H TRUE)
   check_function_exists(fts_open HAVE_FTS_OPEN)
