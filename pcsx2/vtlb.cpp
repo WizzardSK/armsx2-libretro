@@ -40,6 +40,7 @@
 #include <cstdlib>
 #include <map>
 #include <unordered_map>
+#include "common/MinGWOutOfLine.h"
 
 #define FASTMEM_LOG(...)
 //#define FASTMEM_LOG(...) Console.WriteLn(__VA_ARGS__)

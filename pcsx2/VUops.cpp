@@ -10,6 +10,7 @@
 #include "VuEfuModel.h"
 #include "VuMulBand.h"
 #include "R5900OpcodeTables.h"
+#include "common/MinGWOutOfLine.h"
 
 VuMulBandSlot g_vuMulBand[2];
 
@@ -52,6 +53,7 @@ EEFPU_MODEL_CALL void vuMulShortTailBandVu1()
 {
 	vuMulShortTailBandLanes(g_vuMulBand[1].fs, g_vuMulBand[1].ft, g_vuMulBand[1].product);
 }
+
 u32 laststall = 0;
 //Lower/Upper instructions can use that..
 #define _Ft_ ((VU->code >> 16) & 0x1F)  // The rt part of the instruction register

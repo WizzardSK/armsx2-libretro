@@ -13,6 +13,7 @@
 #include "VMManager.h"
 
 #include "common/Error.h"
+#include "common/MinGWOutOfLine.h"
 
 #if defined(__aarch64__) || defined(_M_ARM64)
 #include "SPU2/spu2_neon.h"

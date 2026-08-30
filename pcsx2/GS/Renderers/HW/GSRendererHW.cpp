@@ -14,6 +14,7 @@
 #include "common/BitUtils.h"
 #include "common/StringUtil.h"
 #include <bit>
+#include "common/MinGWOutOfLine.h"
 
 using PS_ATST  = GSShader::PS_ATST;
 using PS_AFAIL = GSShader::PS_AFAIL;

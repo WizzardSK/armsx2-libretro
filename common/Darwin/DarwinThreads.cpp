@@ -18,6 +18,7 @@
 #include <mach/semaphore.h> // semaphore_*()
 #include <mach/task.h> // semaphore_create() and semaphore_destroy()
 #include <mach/thread_act.h>
+#include "common/MinGWOutOfLine.h"
 
 // Note: assuming multicore is safer because it forces the interlocked routines to use
 // the LOCK prefix.  The prefix works on single core CPUs fine (but is slow), but not

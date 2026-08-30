@@ -16,6 +16,7 @@
 #include "common/RedtapeWindows.h"
 #else
 #include <unistd.h>
+#include "common/MinGWOutOfLine.h"
 #endif
 
 using namespace std::string_view_literals;

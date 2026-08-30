@@ -9,6 +9,7 @@
 #include "common/Console.h"
 
 #include <cstring>
+#include "common/MinGWOutOfLine.h"
 
 #define DMA_DIRECTION_TO_DEVICE 0
 #define DMA_DIRECTION_FROM_DEVICE 1

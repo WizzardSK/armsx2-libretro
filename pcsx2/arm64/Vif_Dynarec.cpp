@@ -9,6 +9,7 @@
 #include "common/Assertions.h"
 #include "common/Perf.h"
 #include "common/StringUtil.h"
+#include "common/MinGWOutOfLine.h"
 
 namespace a64 = vixl::aarch64;
 

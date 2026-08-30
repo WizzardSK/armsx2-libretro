@@ -18,6 +18,7 @@
 #include "SPU2/spu2.h"
 
 #include "common/Console.h"
+#include "common/MinGWOutOfLine.h"
 
 s16 spu2regs[0x010000 / sizeof(s16)];
 s16 _spu2mem[0x200000 / sizeof(s16)];

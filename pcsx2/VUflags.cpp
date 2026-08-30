@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "VUmicro.h"
+#include "common/MinGWOutOfLine.h"
 
 /*****************************************/
 /*          NEW FLAGS                    */ //By asadr. Thnkx F|RES :p

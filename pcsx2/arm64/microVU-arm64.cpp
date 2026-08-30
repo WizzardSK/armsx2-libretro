@@ -33,6 +33,7 @@
 #endif
 
 #include "fmt/format.h"
+#include "common/MinGWOutOfLine.h"
 
 //------------------------------------------------------------------
 // Micro VU - Globals

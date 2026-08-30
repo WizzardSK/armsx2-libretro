@@ -18,6 +18,7 @@
 
 #include "common/emitter/internal.h"
 #include <functional>
+#include "common/MinGWOutOfLine.h"
 
 // ------------------------------------------------------------------------
 // Notes on Thread Local Storage:

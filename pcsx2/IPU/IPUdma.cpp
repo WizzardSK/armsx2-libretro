@@ -5,6 +5,7 @@
 #include "IPU/IPU.h"
 #include "IPU/IPUdma.h"
 #include "IPU/IPU_MultiISA.h"
+#include "common/MinGWOutOfLine.h"
 
 IPUDMAStatus IPU1Status;
 

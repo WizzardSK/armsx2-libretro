@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include "common/MinGWOutOfLine.h"
 
 void* _aligned_malloc(size_t size, size_t align)
 {

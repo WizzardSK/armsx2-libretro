@@ -8,6 +8,7 @@
 #include "VUmicro.h"
 #include "Vif_Dma.h"
 #include "Vif_Dynarec.h"
+#include "common/MinGWOutOfLine.h"
 
 #define vifOp(vifCodeName) _vifT int vifCodeName(int pass, const u32* data)
 #define pass1 if (pass == 0)

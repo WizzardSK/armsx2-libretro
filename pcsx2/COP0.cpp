@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include "COP0.h"
+#include "common/MinGWOutOfLine.h"
 
 // Updates the CPU's mode of operation (either, Kernel, Supervisor, or User modes).
 // Currently the different modes are not implemented.

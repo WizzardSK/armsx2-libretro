@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include "common/BitUtils.h"
+#include "common/MinGWOutOfLine.h"
 
 namespace R5900 {
 namespace Interpreter {

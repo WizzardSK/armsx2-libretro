@@ -12,6 +12,7 @@
 #include "fmt/format.h"
 
 #include <deque>
+#include "common/MinGWOutOfLine.h"
 
 using namespace R5900;
 

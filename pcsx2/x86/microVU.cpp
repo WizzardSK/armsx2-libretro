@@ -6,6 +6,7 @@
 #include "common/AlignedMalloc.h"
 #include "common/Perf.h"
 #include "common/StringUtil.h"
+#include "common/MinGWOutOfLine.h"
 
 //------------------------------------------------------------------
 // Micro VU - Main Functions

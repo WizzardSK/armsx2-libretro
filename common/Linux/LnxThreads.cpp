@@ -32,6 +32,7 @@
 #endif
 #else
 #include <pthread_np.h>
+#include "common/MinGWOutOfLine.h"
 #endif
 
 // Note: assuming multicore is safer because it forces the interlocked routines to use

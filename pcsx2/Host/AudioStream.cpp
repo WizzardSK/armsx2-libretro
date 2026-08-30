@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include "common/MinGWOutOfLine.h"
 
 //#define LOG_UNDERRUN(...) DEV_LOG(__VA_ARGS__)
 #define LOG_UNDERRUN(...) (void)0

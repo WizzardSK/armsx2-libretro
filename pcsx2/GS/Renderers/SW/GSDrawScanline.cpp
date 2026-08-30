@@ -10,6 +10,7 @@
 #include "common/Console.h"
 
 #include <fstream>
+#include "common/MinGWOutOfLine.h"
 
 // Comment to disable all dynamic code generation.
 #define ENABLE_JIT_RASTERIZER

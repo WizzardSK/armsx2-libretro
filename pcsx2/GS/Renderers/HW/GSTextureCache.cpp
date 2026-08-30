@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #else
 #include <malloc.h>
+#include "common/MinGWOutOfLine.h"
 #endif
 
 std::unique_ptr<GSTextureCache> g_texture_cache;

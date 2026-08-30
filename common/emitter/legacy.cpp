@@ -17,6 +17,7 @@
 #include "common/emitter/legacy_internal.h"
 #include "common/Console.h"
 #include <cassert>
+#include "common/MinGWOutOfLine.h"
 
 emitterT void ModRM(uint mod, uint reg, uint rm)
 {

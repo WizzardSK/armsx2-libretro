@@ -31,6 +31,7 @@
 #include <cinttypes>
 #include <fstream>
 #include <sstream>
+#include "common/MinGWOutOfLine.h"
 
 static constexpr u32 g_vs_pc_index        = 4;
 static constexpr u32 g_vs_ib_index        = 3;

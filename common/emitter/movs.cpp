@@ -18,6 +18,7 @@
 
 #include "common/emitter/internal.h"
 #include "common/emitter/implement/helpers.h"
+#include "common/MinGWOutOfLine.h"
 
 namespace x86Emitter
 {

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 #include <iterator>
+#include "common/MinGWOutOfLine.h"
 
 // Helper Macros
 //****************************************************************

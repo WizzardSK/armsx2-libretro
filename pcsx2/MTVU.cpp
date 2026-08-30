@@ -9,6 +9,7 @@
 #include "Vif_Dynarec.h"
 
 #include <thread>
+#include "common/MinGWOutOfLine.h"
 
 VU_Thread vu1Thread;
 

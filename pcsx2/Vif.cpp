@@ -9,6 +9,7 @@
 #include "Vif.h"
 #include "Vif_Dma.h"
 #include "Vif_Dynarec.h"
+#include "common/MinGWOutOfLine.h"
 
 alignas(16) vifStruct vif0, vif1;
 

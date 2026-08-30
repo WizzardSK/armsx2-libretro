@@ -17,6 +17,7 @@
 #include "VUmicro.h"
 #include "Vif_Dma.h"
 #include "MTVU.h"
+#include "common/MinGWOutOfLine.h"
 
 #define _Ft_ _Rt_
 #define _Fs_ _Rd_

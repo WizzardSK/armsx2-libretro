@@ -65,6 +65,7 @@ namespace
 #include <mutex>
 #include <sstream>
 #include <utility>
+#include "common/MinGWOutOfLine.h"
 
 // Tweakables
 enum : u32

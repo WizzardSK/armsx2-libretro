@@ -19,6 +19,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include "common/MinGWOutOfLine.h"
 
 // Uncomment this to enable profiling of the GS RingBufferCopy function.
 //#define PCSX2_GSRING_SAMPLING_STATS

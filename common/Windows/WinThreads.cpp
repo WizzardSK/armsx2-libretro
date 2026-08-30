@@ -10,6 +10,7 @@
 #include <mmsystem.h>
 #include <process.h>
 #include <timeapi.h>
+#include "common/MinGWOutOfLine.h"
 
 __fi void Threading::Timeslice()
 {

@@ -5,6 +5,7 @@
 #include "Vif_Dma.h"
 #include "Vif_Dynarec.h"
 #include "VUmicro.h"
+#include "common/MinGWOutOfLine.h"
 
 u32 g_vif0Cycles = 0;
 

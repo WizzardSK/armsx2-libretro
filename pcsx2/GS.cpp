@@ -9,6 +9,7 @@
 #include "VMManager.h"
 
 #include <list>
+#include "common/MinGWOutOfLine.h"
 
 alignas(16) u8 g_RealGSMem[Ps2MemSize::GSregs];
 static bool s_GSRegistersWritten = false;

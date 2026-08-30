@@ -9,6 +9,7 @@
 #include "common/FileSystem.h"
 
 #include <cstdarg>
+#include "common/MinGWOutOfLine.h"
 
 #ifdef PCSX2_DEVBUILD
 

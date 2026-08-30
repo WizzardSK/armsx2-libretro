@@ -5,6 +5,7 @@
 #include "R5900OpcodeTables.h"
 #include "iR5900.h"
 #include "iFPU.h"
+#include "common/MinGWOutOfLine.h"
 
 using namespace x86Emitter;
 

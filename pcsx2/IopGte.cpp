@@ -6,6 +6,7 @@
 #include "IopMem.h"
 
 #include "common/BitUtils.h"
+#include "common/MinGWOutOfLine.h"
 #ifdef GTE_DUMP
 #define G_OP(name,delay) fprintf(gteLog, "* : %08X : %02d : %s\n", psxRegs.code, delay, name);
 #define G_SD(reg)  fprintf(gteLog, "+D%02d : %08X\n", reg, psxRegs.CP2D.r[reg]);

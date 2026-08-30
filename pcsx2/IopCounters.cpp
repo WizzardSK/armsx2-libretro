@@ -16,6 +16,7 @@
 #include "CDVD/CDVD.h"
 
 #include <math.h>
+#include "common/MinGWOutOfLine.h"
 
 /* Config.PsxType == 1: PAL:
 	 VBlank interlaced		50.00 Hz

@@ -6,6 +6,7 @@
 #include "Vif_Dma.h"
 #include "Vif_Dynarec.h"
 #include "MTVU.h"
+#include "common/MinGWOutOfLine.h"
 
 enum UnpackOffset {
 	OFFSET_X = 0,

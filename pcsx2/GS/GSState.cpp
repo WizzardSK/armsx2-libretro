@@ -21,6 +21,7 @@
 #include <iomanip>
 #include <bit>
 #include <thread>
+#include "common/MinGWOutOfLine.h"
 
 
 static __fi bool IsAutoFlushEnabled()

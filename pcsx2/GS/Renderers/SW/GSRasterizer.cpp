@@ -12,6 +12,7 @@
 #include "common/AlignedMalloc.h"
 #include "common/Console.h"
 #include "common/StringUtil.h"
+#include "common/MinGWOutOfLine.h"
 
 #define ENABLE_DRAW_STATS 0
 

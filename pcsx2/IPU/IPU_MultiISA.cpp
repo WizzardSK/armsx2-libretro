@@ -13,6 +13,7 @@
 #include "IPU/IPUdma.h"
 #include "IPU/yuv2rgb.h"
 #include "IPU/IPU_MultiISA.h"
+#include "common/MinGWOutOfLine.h"
 
 // the IPU is fixed to 16 byte strides (128-bit / QWC resolution):
 static const uint decoder_stride = 16;

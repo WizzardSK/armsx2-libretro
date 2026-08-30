@@ -10,6 +10,7 @@
 #include "GS/Renderers/Common/GSRenderer.h"
 #include "common/AlignedMalloc.h"
 #include "common/Console.h"
+#include "common/MinGWOutOfLine.h"
 
 GSClut::GSClut(GSLocalMemory* mem)
 	: m_mem(mem)

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0+
 
 #include "common/emitter/legacy_internal.h"
+#include "common/MinGWOutOfLine.h"
 
 using namespace x86Emitter;
 

@@ -7,6 +7,7 @@
 
 #include "IPU/IPUdma.h"
 #include "ps2/HwInternal.h"
+#include "common/MinGWOutOfLine.h"
 
 bool DMACh::transfer(const char *s, tDMA_TAG* ptag)
 {

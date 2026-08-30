@@ -14,6 +14,7 @@
 #include "IopDma.h"
 #include "CDVD/Ps1CD.h"
 #include "CDVD/CDVD.h"
+#include "common/MinGWOutOfLine.h"
 
 using namespace R3000A;
 

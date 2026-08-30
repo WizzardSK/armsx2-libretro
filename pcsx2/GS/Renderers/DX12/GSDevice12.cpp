@@ -30,6 +30,7 @@
 #ifdef ENABLE_OGL_DEBUG
 #define USE_PIX
 #include "WinPixEventRuntime/pix3.h"
+#include "common/MinGWOutOfLine.h"
 
 static u32 s_debug_scope_depth = 0;
 #endif

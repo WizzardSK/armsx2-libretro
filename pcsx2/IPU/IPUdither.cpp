@@ -7,6 +7,7 @@
 #include "IPU/IPUdma.h"
 #include "IPU/yuv2rgb.h"
 #include "IPU/IPU_MultiISA.h"
+#include "common/MinGWOutOfLine.h"
 
 MULTI_ISA_UNSHARED_START
 

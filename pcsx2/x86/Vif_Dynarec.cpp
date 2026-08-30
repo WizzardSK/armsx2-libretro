@@ -5,6 +5,7 @@
 #include "MTVU.h"
 #include "common/Perf.h"
 #include "common/StringUtil.h"
+#include "common/MinGWOutOfLine.h"
 
 void dVifReset(int idx)
 {

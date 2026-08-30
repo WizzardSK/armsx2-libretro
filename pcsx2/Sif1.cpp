@@ -7,6 +7,7 @@
 #include "Common.h"
 #include "Sif.h"
 #include "IopHw.h"
+#include "common/MinGWOutOfLine.h"
 
 _sif sif1;
 

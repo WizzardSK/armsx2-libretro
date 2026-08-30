@@ -7,6 +7,7 @@
 #include "common/Console.h"
 
 #include <array>
+#include "common/MinGWOutOfLine.h"
 
 void V_Core::AnalyzeReverbPreset()
 {

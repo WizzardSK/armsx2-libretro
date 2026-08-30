@@ -29,6 +29,7 @@
 #include "R5900OpcodeTables.h"
 
 #include "fmt/format.h"
+#include "common/MinGWOutOfLine.h"
 
 using namespace R5900;	// for R5900 disasm tools
 
