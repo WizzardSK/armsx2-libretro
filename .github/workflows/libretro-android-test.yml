@@ -71,7 +71,7 @@ jobs:
           name: armsx2_libretro_android
           path: armsx2_libretro_android.so
 
-      - name: Publish it as a prerelease
+      - name: Publish it as a release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -89,6 +89,6 @@ jobs:
           } > notes.md
           gh release delete android-test --yes --cleanup-tag || true
           gh release create android-test armsx2_libretro_android.so \
-            --prerelease \
+            --latest \
             --title "Android test build (${GIT_SHA})" \
             --notes-file notes.md
