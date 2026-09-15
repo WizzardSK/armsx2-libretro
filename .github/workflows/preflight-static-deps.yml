@@ -1,0 +1,82 @@
+name: Preflight static deps
+
+# Not for upstream. Replays what the buildbot's linux job does after the change
+# in this branch - dependencies built static, jpeg and pcap taken from the
+# distribution's static libraries - and then checks the core that comes out:
+# nothing left in NEEDED that a user's machine would not have, and no RUNPATH.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  preflight:
+    runs-on: ubuntu-22.04-arm
+    timeout-minutes: 240
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install \
+            build-essential clang cmake curl git lld ninja-build nasm patchelf pkg-config zstd zlib1g-dev \
+            libaio-dev libasound2-dev libcurl4-openssl-dev libdbus-1-dev libdrm-dev libegl-dev libevdev-dev \
+            libfontconfig1-dev libgbm-dev libgudev-1.0-dev libinput-dev libjpeg-dev libopengl-dev libpcap-dev \
+            libpulse-dev libssl-dev libudev-dev
+
+      - name: Build dependencies (static)
+        run: |
+          export DEPS_SHARED=OFF
+          ./.github/workflows/scripts/linux/build-dependencies-runner.sh "$GITHUB_WORKSPACE/.deps"
+
+      - name: Take the static jpeg and pcap
+        run: |
+          ARCHDIR=$(gcc -print-multiarch)
+          for lib in libjpeg.a libpcap.a; do
+            test -f "/usr/lib/$ARCHDIR/$lib" || { echo "missing /usr/lib/$ARCHDIR/$lib"; exit 1; }
+            cp "/usr/lib/$ARCHDIR/$lib" "$GITHUB_WORKSPACE/.deps/lib/"
+          done
+          echo "--- what .deps/lib holds ---"
+          ls "$GITHUB_WORKSPACE/.deps/lib"
+
+      - name: Configure and build the core
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_EXE_LINKER_FLAGS_INIT=-fuse-ld=lld \
+            -DCMAKE_MODULE_LINKER_FLAGS_INIT=-fuse-ld=lld \
+            -DCMAKE_SHARED_LINKER_FLAGS_INIT=-fuse-ld=lld \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.deps" \
+            -DENABLE_LIBRETRO=ON -DENABLE_QT_UI=OFF -DENABLE_SDL_FRONTEND=OFF \
+            -DENABLE_GSRUNNER=OFF -DENABLE_TESTS=OFF -DENABLE_RECOMPILER_TEST_HOOKS=OFF \
+            -DENABLE_SETCAP=OFF -DUSE_BACKTRACE=OFF -DX11_API=OFF -DWAYLAND_API=OFF \
+            -DDISABLE_ADVANCE_SIMD=TRUE -DHOST_PAGE_SIZE=4096 \
+            -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON \
+            -DCMAKE_SKIP_BUILD_RPATH=ON -DCMAKE_SKIP_INSTALL_RPATH=ON \
+            . -Bbuild/linux-aarch64
+          cmake --build build/linux-aarch64 --target armsx2_libretro --config Release -- -j $(nproc)
+
+      - name: What the core ended up needing
+        run: |
+          CORE=build/linux-aarch64/bin/armsx2_libretro.so
+          ls -l "$CORE"
+          echo "--- NEEDED ---"
+          readelf -d "$CORE" | grep NEEDED
+          echo "--- RPATH/RUNPATH ---"
+          readelf -d "$CORE" | grep -iE 'rpath|runpath' || echo "none, which is the point"
+          echo "--- the four that broke it before ---"
+          fail=0
+          for lib in libjpeg.so.8 libpcap.so.0.8 libplutosvg.so.0 libplutovg.so.1 libSDL3.so.0 libfreetype.so.6 libwebp.so.7; do
+            if readelf -d "$CORE" | grep -q "\[$lib\]"; then echo "STILL NEEDED: $lib"; fail=1; else echo "gone: $lib"; fi
+          done
+          if readelf -d "$CORE" | grep -qiE 'rpath|runpath'; then echo "STILL HAS AN RPATH"; fail=1; fi
+          exit $fail
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: armsx2_libretro_static
+          path: build/linux-aarch64/bin/armsx2_libretro.so
