@@ -24,9 +24,14 @@ jobs:
 
       - name: Install packages
         run: |
+          # clang-17 from apt.llvm.org, as the project's own libretro workflow
+          # does: jammy's clang-14 dies in FPU.cpp with "Unsupported calling
+          # convention" before any of this gets interesting.
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          sudo apt-add-repository -n 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-17 main'
           sudo apt-get update
           sudo apt-get -y install \
-            build-essential clang cmake curl git lld ninja-build nasm patchelf pkg-config zstd zlib1g-dev \
+            build-essential clang-17 lld-17 llvm-17 cmake curl git ninja-build nasm patchelf pkg-config zstd zlib1g-dev \
             libaio-dev libasound2-dev libcurl4-openssl-dev libdbus-1-dev libdrm-dev libegl-dev libevdev-dev \
             libfontconfig1-dev libgbm-dev libgudev-1.0-dev libinput-dev libjpeg-dev libopengl-dev libpcap-dev \
             libpulse-dev libssl-dev libudev-dev
@@ -49,7 +54,7 @@ jobs:
       - name: Configure and build the core
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 \
             -DCMAKE_EXE_LINKER_FLAGS_INIT=-fuse-ld=lld \
             -DCMAKE_MODULE_LINKER_FLAGS_INIT=-fuse-ld=lld \
             -DCMAKE_SHARED_LINKER_FLAGS_INIT=-fuse-ld=lld \
