@@ -6,6 +6,9 @@ name: Preflight static deps
 # nothing left in NEEDED that a user's machine would not have, and no RUNPATH.
 
 on:
+  push:
+    branches:
+      - preflight-static-deps
   workflow_dispatch:
 
 jobs:
