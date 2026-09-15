@@ -83,7 +83,32 @@
         ln -sf "/usr/bin/ld.lld-$v" /usr/bin/ld.lld
       fi
       clang++ --version
+    # Static, unlike the project's own nightly. That one copies the .so files
+    # from .deps next to the binary, the way the Windows build copies its DLLs;
+    # the buildbot ships the core on its own, so anything left shared here ends
+    # up as a NEEDED entry pointing at a library the user does not have - and a
+    # RUNPATH into this builder's .deps/lib, which helps nobody.
+    - export DEPS_SHARED=OFF
     - ./.github/workflows/scripts/linux/build-dependencies-runner.sh "$CI_PROJECT_DIR/.deps"
+    # jpeg and pcap are the two the core takes from the image rather than from
+    # .deps, and the image has them shared only. libjpeg.so.8 is the worse of
+    # the pair: the jpeg8 ABI is close to an Ubuntu speciality, so a core
+    # carrying it will not load on most other distributions. Both ship a static
+    # library in the same -dev package; put those where .deps is already looked
+    # at first and they link in instead.
+    - |
+      ARCHDIR=$(gcc -print-multiarch)
+      for lib in libjpeg.a libpcap.a; do
+        if [ ! -f "/usr/lib/$ARCHDIR/$lib" ]; then
+          echo "no /usr/lib/$ARCHDIR/$lib in this image - the core would link the shared one and not load off this builder"
+          exit 1
+        fi
+        cp "/usr/lib/$ARCHDIR/$lib" "$CI_PROJECT_DIR/.deps/lib/"
+      done
+    # Nothing is loaded from a path outside the system ones any more, so there
+    # is no rpath worth recording; without this CMake still writes one for the
+    # .deps prefix.
+    - export CORE_ARGS="$CORE_ARGS -DCMAKE_SKIP_BUILD_RPATH=ON -DCMAKE_SKIP_INSTALL_RPATH=ON"
 
 # macOS has no buildbot image to apt-install from: the runner is a shared Mac
 # with whatever Xcode it happens to carry and none of the pinned dependencies,
