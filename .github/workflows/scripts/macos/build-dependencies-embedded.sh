@@ -210,9 +210,12 @@ echo "Installing SDL..."
 rm -fr "$SDL"
 tar xf "$SDL.tar.gz"
 cd "$SDL"
-# The core links SDL for its controller support only - no video, no audio
-# backend of its own, and none of SDL's own executables.
-cmake "${CMAKE_COMMON[@]}" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_VIDEO=OFF -DSDL_POWER=OFF \
+# The core links SDL for its controller support only. Video stays in on these
+# platforms, unlike the macOS slice: SDL's UIKit joystick backend calls
+# SDL_IsAppleTV and SDL_IsIPad, which are defined in the UIKit *video* sources,
+# so a video-less build links a controller backend whose two helpers do not
+# exist. Nothing here opens a window either way.
+cmake "${CMAKE_COMMON[@]}" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_POWER=OFF \
 	-DSDL_SENSOR=OFF -DSDL_DIALOG=OFF -DSDL_TRAY=OFF -DSDL_TEST_LIBRARY=OFF -DSDL_EXAMPLES=OFF -B build
 make -C build "-j$NPROCS"
 make -C build install
