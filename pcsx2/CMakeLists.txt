@@ -881,7 +881,11 @@ elseif(LINUX)
 	list(APPEND pcsx2USBHeaders
 		USB/usb-eyetoy/cam-linux.h
 	)
-elseif(APPLE)
+elseif(APPLE AND NOT APPLE_EMBEDDED)
+	# macOS rather than Apple: cam-macos.mm asks AVCaptureDeviceDiscoverySession
+	# for AVCaptureDeviceTypeExternalUnknown, which is a desktop idea and marked
+	# unavailable on tvOS. iOS and tvOS take the same no-op backend as every
+	# other platform without a camera.
 	list(APPEND pcsx2USBSources
 		USB/usb-eyetoy/cam-macos.mm
 	)
@@ -1529,9 +1533,10 @@ endif()
 target_sources(PCSX2 PRIVATE ${pcsx2USBSources} ${pcsx2USBHeaders})
 
 if(APPLE OR BSD)
-	# Disc sources use IOKit, which doesn't exist on iOS.
-	if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
-		# No disc support on iOS.
+	# Disc sources use IOKit, which exists on neither iOS nor tvOS.
+	if(APPLE_EMBEDDED)
+		# No disc support there; Apple/AppleEmbeddedStubs.cpp answers for what
+		# CDVDdiscReader names.
 	elseif(APPLE)
 		target_sources(PCSX2 PRIVATE
 			${pcsx2OSXSources})
@@ -1715,8 +1720,8 @@ fixup_file_properties(PCSX2)
 force_include_last(PCSX2_FLAGS "/(usr|local)/include/?$")
 
 if (APPLE)
-	if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
-		# AppKit and IOKit are macOS-only; iOS links the rest at the app target.
+	if(NOT APPLE_EMBEDDED)
+		# AppKit and IOKit are macOS-only.
 		find_library(APPKIT_LIBRARY AppKit)
 		find_library(IOKIT_LIBRARY IOKit)
 		find_library(METAL_LIBRARY Metal)
@@ -1726,6 +1731,21 @@ if (APPLE)
 		target_link_libraries(PCSX2_FLAGS INTERFACE
 			${APPKIT_LIBRARY}
 			${IOKIT_LIBRARY}
+			${METAL_LIBRARY}
+			${QUARTZCORE_LIBRARY}
+			${AVFOUNDATION_LIBRARY}
+			${COREMEDIA_LIBRARY}
+		)
+	elseif(ENABLE_LIBRETRO)
+		# The iOS app links these at its own target, so PCSX2 never had to -
+		# but a libretro core is the final link itself, and the Metal renderer
+		# it carries names MTLCreateSystemDefaultDevice and CAMetalLayer. The
+		# two macOS-only frameworks above stay out.
+		find_library(METAL_LIBRARY Metal)
+		find_library(QUARTZCORE_LIBRARY QuartzCore)
+		find_library(AVFOUNDATION_LIBRARY AVFoundation)
+		find_library(COREMEDIA_LIBRARY CoreMedia)
+		target_link_libraries(PCSX2_FLAGS INTERFACE
 			${METAL_LIBRARY}
 			${QUARTZCORE_LIBRARY}
 			${AVFOUNDATION_LIBRARY}

@@ -16,6 +16,39 @@
 
 #include "common/HostSys.h"
 
+// The app's bridge, which a core does not have. VMManager, InputManager and
+// the ImGui overlay call into these under TARGET_OS_IPHONE, and the iOS app
+// implements them in its Swift/ObjC layer - so they are undefined in a
+// libretro core, and only there, which is why the stubs are guarded rather
+// than the calls. The same shape as Android/AndroidStubs.cpp, for the same
+// reason: the frontend owns rumble and the screen.
+#ifdef ENABLE_LIBRETRO
+extern "C" void ARMSX2_PostEmulationOnlyStartupReady(void)
+{
+}
+
+extern "C" void ARMSX2_iOSUpdatePadVibration(u32 pad_index, float large_intensity, float small_intensity)
+{
+	// The frontend drives rumble through retro_rumble_interface; nothing here
+	// has a haptics engine to reach for.
+}
+
+extern "C" bool ARMSX2_iOSShouldShowDeviceStatsOverlay()
+{
+	return false;
+}
+
+extern "C" int ARMSX2_iOSGetDeviceStatsOverlaySeverity()
+{
+	return 0;
+}
+
+extern "C" const char* ARMSX2_iOSGetDeviceStatsOverlayLine()
+{
+	return "";
+}
+#endif
+
 // Sound playback. On macOS this is CocoaTools.mm, which is AppKit and so not
 // built here (see common/CMakeLists.txt); the caller is the achievement chime,
 // which treats a false as "no sound played".
