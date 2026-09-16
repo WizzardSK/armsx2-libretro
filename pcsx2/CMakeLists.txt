@@ -1340,7 +1340,12 @@ if(ARMSX2_IOS)
 		MacOSStubs.cpp
 		# iOS has no libpcap, so pcap_io.cpp is excluded above; reuse the (platform-
 		# agnostic) Android stub to supply the PCAPAdapter definitions DEV9 references.
-		Android/AndroidPcapStubs.cpp)
+		Android/AndroidPcapStubs.cpp
+		# MacOSStubs.cpp excludes itself on the embedded platforms (it is
+		# !TARGET_OS_IPHONE throughout), so what those need instead is here: the
+		# optical drive CDVDdiscReader names and the sound CocoaTools would have
+		# played.
+		Apple/AppleEmbeddedStubs.cpp)
 endif()
 
 # These ones benefit a lot from LTO

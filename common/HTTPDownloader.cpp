@@ -9,6 +9,10 @@
 #include "common/Timer.h"
 #include "common/Threading.h"
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 static constexpr float DEFAULT_TIMEOUT_IN_SECONDS = 30;
 static constexpr u32 DEFAULT_MAX_ACTIVE_REQUESTS = 4;
 
@@ -22,6 +26,20 @@ HTTPDownloader::HTTPDownloader()
 }
 
 HTTPDownloader::~HTTPDownloader() = default;
+
+// iOS and tvOS have no libcurl to link against, so neither backend is compiled
+// there (see common/CMakeLists.txt, which already left HTTPDownloaderCurl.cpp
+// out) - and unlike Android there is no JNI one to take its place. This is the
+// whole implementation on those platforms: every caller already treats a
+// missing downloader as "this feature is unavailable", which is what
+// achievements and cover downloads do, and in a libretro core both of those
+// belong to the frontend anyway.
+#if defined(__APPLE__) && !TARGET_OS_OSX
+std::unique_ptr<HTTPDownloader> HTTPDownloader::Create(std::string user_agent)
+{
+	return nullptr;
+}
+#endif
 
 void HTTPDownloader::SetTimeout(float timeout)
 {

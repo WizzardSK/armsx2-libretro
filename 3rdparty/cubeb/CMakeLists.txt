@@ -125,7 +125,10 @@ if(USE_SNDIO)
   target_compile_definitions(cubeb PRIVATE USE_SNDIO)
 endif()
 
-if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+# ...and not on tvOS either, for the same reason it is skipped on iOS: the
+# device globals near the top of cubeb_audiounit.cpp are AudioObjectPropertyAddress
+# constants from CoreAudio's AudioHardware API, which neither embedded SDK has.
+if(APPLE AND NOT APPLE_EMBEDDED)
 check_include_files(AudioUnit/AudioUnit.h USE_AUDIOUNIT)
 if(USE_AUDIOUNIT)
   target_sources(cubeb PRIVATE

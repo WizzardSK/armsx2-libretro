@@ -25,6 +25,15 @@ set(ARMSX2_VERSION "" CACHE STRING "Reported version for builds without a git ch
 option(BUNDLE_EMOJI_FONT "Bundles Noto Color Emoji for systems whose system emoji font isn't usable by freetype" ON)
 option(POSITION_INDEPENDENT_CODE "Generate position-independent code. It is recommended that you leave this on." ON)
 
+# iOS and tvOS are Apple but not macOS, and the difference decides a few things
+# here and in 3rdparty: no AppKit, no IOKit, no AudioHardware, no optical drive.
+# CMake tells them apart by system name - APPLE is true for all of them.
+if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	set(APPLE_EMBEDDED TRUE)
+else()
+	set(APPLE_EMBEDDED FALSE)
+endif()
+
 #-------------------------------------------------------------------------------
 # Graphical option
 #-------------------------------------------------------------------------------
