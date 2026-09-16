@@ -1,0 +1,98 @@
+name: Preflight Apple embedded
+
+# Not for upstream. Replays what the two new buildbot jobs do - the iOS and
+# tvOS libretro cores, built through the root CMakeLists against the static
+# dependency set from build-dependencies-embedded.sh - so the recipe is known
+# to compile before it is pushed at a buildbot that takes an hour to tell us.
+#
+# The runner is a GitHub Apple Silicon one, which carries the iPhoneOS and
+# AppleTVOS SDKs; the buildbot's mac-apple-silicon runner is the same shape.
+
+on:
+  push:
+    branches:
+      - libretro-apple-embedded
+  workflow_dispatch:
+
+jobs:
+  preflight:
+    name: ${{ matrix.platform }}
+    runs-on: macos-15
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ios
+            system_name: iOS
+            sysroot: iphoneos
+          - platform: tvos
+            system_name: tvOS
+            sysroot: appletvos
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Which SDKs this runner has
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+
+      - name: Cache the dependency prefix
+        uses: actions/cache@v4
+        with:
+          path: .deps
+          key: apple-${{ matrix.platform }}-${{ hashFiles('.github/workflows/scripts/macos/build-dependencies-embedded.sh') }}
+
+      - name: Build dependencies (static, ${{ matrix.platform }} SDK)
+        run: |
+          if [ ! -d "$GITHUB_WORKSPACE/.deps/include/SDL3" ]; then
+            APPLE_PLATFORM=${{ matrix.platform }} \
+              ./.github/workflows/scripts/macos/build-dependencies-embedded.sh "$GITHUB_WORKSPACE/.deps"
+          fi
+          ls "$GITHUB_WORKSPACE/.deps/lib"
+
+      - name: Configure and build the core
+        run: |
+          # The flags the ci-template adds on top of CORE_ARGS, spelled out here
+          # because this workflow is not running the template.
+          cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_C_FLAGS=-DIOS -DCMAKE_CXX_FLAGS=-DIOS \
+            -DIOS=ON \
+            -DCMAKE_SYSTEM_NAME=${{ matrix.system_name }} \
+            -DCMAKE_OSX_SYSROOT=${{ matrix.sysroot }} \
+            -DCMAKE_SYSTEM_PROCESSOR=arm64 \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=17.4 \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.deps" \
+            -DCMAKE_FIND_ROOT_PATH="$GITHUB_WORKSPACE/.deps" \
+            -DENABLE_LIBRETRO=ON -DENABLE_QT_UI=OFF -DENABLE_SDL_FRONTEND=OFF \
+            -DENABLE_GSRUNNER=OFF -DENABLE_TESTS=OFF -DENABLE_RECOMPILER_TEST_HOOKS=OFF \
+            -DENABLE_SETCAP=OFF -DUSE_BACKTRACE=OFF -DUSE_VULKAN=OFF \
+            -DX11_API=OFF -DWAYLAND_API=OFF \
+            -DDISABLE_ADVANCE_SIMD=TRUE \
+            -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON \
+            -DCMAKE_MACOSX_BUNDLE=OFF \
+            . -Bbuild/${{ matrix.platform }}-arm64
+          cmake --build build/${{ matrix.platform }}-arm64 --target armsx2_libretro \
+            --config RelWithDebInfo -- -j $(sysctl -n hw.ncpu)
+
+      - name: What came out
+        run: |
+          CORE=$(find build/${{ matrix.platform }}-arm64 -name 'armsx2_libretro.dylib' | head -1)
+          test -n "$CORE" || { echo "no core was produced"; exit 1; }
+          ls -l "$CORE"
+          # The platform the load command names is the check that matters: a
+          # macOS dylib built by accident links and runs on the runner and is
+          # useless on a device.
+          vtool -show "$CORE" || true
+          otool -L "$CORE" || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: armsx2_libretro_${{ matrix.platform }}
+          path: build/${{ matrix.platform }}-arm64/**/armsx2_libretro.dylib
