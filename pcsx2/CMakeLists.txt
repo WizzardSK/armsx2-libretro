@@ -881,11 +881,11 @@ elseif(LINUX)
 	list(APPEND pcsx2USBHeaders
 		USB/usb-eyetoy/cam-linux.h
 	)
-elseif(APPLE AND NOT APPLE_EMBEDDED)
-	# macOS rather than Apple: cam-macos.mm asks AVCaptureDeviceDiscoverySession
-	# for AVCaptureDeviceTypeExternalUnknown, which is a desktop idea and marked
-	# unavailable on tvOS. iOS and tvOS take the same no-op backend as every
-	# other platform without a camera.
+elseif(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+	# cam-macos.mm asks AVCaptureDeviceDiscoverySession for
+	# AVCaptureDeviceTypeExternalUnknown, which is marked unavailable on tvOS.
+	# There it takes the same no-op backend as every other platform without a
+	# camera; iOS keeps the one it always had.
 	list(APPEND pcsx2USBSources
 		USB/usb-eyetoy/cam-macos.mm
 	)
@@ -1344,12 +1344,17 @@ if(ARMSX2_IOS)
 		MacOSStubs.cpp
 		# iOS has no libpcap, so pcap_io.cpp is excluded above; reuse the (platform-
 		# agnostic) Android stub to supply the PCAPAdapter definitions DEV9 references.
-		Android/AndroidPcapStubs.cpp
-		# MacOSStubs.cpp excludes itself on the embedded platforms (it is
-		# !TARGET_OS_IPHONE throughout), so what those need instead is here: the
-		# optical drive CDVDdiscReader names and the sound CocoaTools would have
-		# played.
-		Apple/AppleEmbeddedStubs.cpp)
+		Android/AndroidPcapStubs.cpp)
+	# MacOSStubs.cpp excludes itself on the embedded platforms (it is
+	# !TARGET_OS_IPHONE throughout), so what those need instead is here: the
+	# optical drive CDVDdiscReader names, the sound CocoaTools would have
+	# played, and the downloader there is no libcurl for. Only for a core: the
+	# iOS app answers for all of it in its own IOS/HostImpls.mm, and two
+	# definitions of each is a duplicate symbol at link.
+	if(ENABLE_LIBRETRO)
+		list(APPEND pcsx2Sources
+			Apple/AppleEmbeddedStubs.cpp)
+	endif()
 endif()
 
 # These ones benefit a lot from LTO
@@ -1534,7 +1539,7 @@ target_sources(PCSX2 PRIVATE ${pcsx2USBSources} ${pcsx2USBHeaders})
 
 if(APPLE OR BSD)
 	# Disc sources use IOKit, which exists on neither iOS nor tvOS.
-	if(APPLE_EMBEDDED)
+	if(ARMSX2_IOS)
 		# No disc support there; Apple/AppleEmbeddedStubs.cpp answers for what
 		# CDVDdiscReader names.
 	elseif(APPLE)
@@ -1720,7 +1725,7 @@ fixup_file_properties(PCSX2)
 force_include_last(PCSX2_FLAGS "/(usr|local)/include/?$")
 
 if (APPLE)
-	if(NOT APPLE_EMBEDDED)
+	if(NOT ARMSX2_IOS)
 		# AppKit and IOKit are macOS-only.
 		find_library(APPKIT_LIBRARY AppKit)
 		find_library(IOKIT_LIBRARY IOKit)

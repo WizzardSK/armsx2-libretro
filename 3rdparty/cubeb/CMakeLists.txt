@@ -128,7 +128,9 @@ endif()
 # ...and not on tvOS either, for the same reason it is skipped on iOS: the
 # device globals near the top of cubeb_audiounit.cpp are AudioObjectPropertyAddress
 # constants from CoreAudio's AudioHardware API, which neither embedded SDK has.
-if(APPLE AND NOT APPLE_EMBEDDED)
+# The system name is what decides it: the iOS app tree has its own copy of
+# cmake/BuildParameters.cmake and so no APPLE_EMBEDDED to read here.
+if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS" AND NOT CMAKE_SYSTEM_NAME STREQUAL "tvOS")
 check_include_files(AudioUnit/AudioUnit.h USE_AUDIOUNIT)
 if(USE_AUDIOUNIT)
   target_sources(cubeb PRIVATE
