@@ -1,0 +1,71 @@
+# Preflight: the iOS app build on its own, on a branch, before a pull request.
+# The job below is build-all.yml's `ios` verbatim, minus the master-only
+# RetroAchievements steps - this fork has none of those secrets. Not for
+# upstream: it lives on the preflight branch only.
+name: Preflight iOS app
+
+on:
+  push:
+    branches:
+      - swift-build-fix-preflight
+  workflow_dispatch:
+
+jobs:
+  ios:
+    name: iOS (arm64, unsigned device IPA)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode.app
+
+      # librashader is built by cargo for iOS; without this target CMake turns shader
+      # support off and the app hides Shaders, while the build still passes.
+      - name: Install Rust iOS target
+        run: rustup target add aarch64-apple-ios
+
+      # RetroAchievements grants hardcore by the client name and version in the user agent,
+      # which pcsx2/Host.cpp reads from a gitignored header. Only master builds get it; pull
+      # request builds keep the stock PCSX2 agent and stay softcore.
+      - name: Configure (CMake, Xcode generator, real device SDK, no signing)
+        working-directory: platforms/ios/app/src/main/cpp
+        run: >
+          cmake -G Xcode -B build
+          -DCMAKE_SYSTEM_NAME=iOS
+          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DARMSX2_REAL_DEVICE=ON
+
+      - name: Build (iphoneos SDK, unsigned)
+        working-directory: platforms/ios/app/src/main/cpp
+        run: >
+          cmake --build build --config Release
+          -- -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+
+      - name: Package unsigned .ipa
+        working-directory: platforms/ios/app/src/main/cpp
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+          IPA_NAME="ARMSX2-iOS-${SHORT_SHA}.ipa"
+
+          APP_PATH=$(find build -name "ARMSX2iOS.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: ARMSX2iOS.app not found in build output"
+            exit 1
+          fi
+
+          echo "Found app at: $APP_PATH"
+          echo "Packaging as: $IPA_NAME"
+
+          STAGING=$(mktemp -d)
+          mkdir -p "$STAGING/Payload"
+          cp -R "$APP_PATH" "$STAGING/Payload/"
+
+          cd "$STAGING"
+          zip -r "$GITHUB_WORKSPACE/$IPA_NAME" Payload -x "*.DS_Store"
+          cd "$GITHUB_WORKSPACE"
+
+          echo "IPA_NAME=$IPA_NAME" >> $GITHUB_ENV
+          ls -lh "$IPA_NAME"
